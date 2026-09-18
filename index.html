@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHASM OF THE PLENUM // A Derived Civilization Simulation</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Offline Three.js library -->
+  <script src="libs/three.min.js"></script>
+  <script src="libs/OrbitControls.js"></script>
+</head>
+<body>
+  <!-- 3D Canvas Viewport -->
+  <div id="viewport"></div>
+
+  <!-- Top Tactical Bar -->
+  <header id="top-bar">
+    <div class="brand">
+      <span class="pulse-dot"></span>
+      <strong>CHASM OF THE PLENUM</strong>
+      <span class="version-tag">200-UPLIFT ENGINE</span>
+    </div>
+
+    <!-- Tide Clock HUD (UIUX-01) -->
+    <div class="tide-panel">
+      <div class="tide-header">
+        <span id="hud-tide-hour">TIDE 02.0h / 32.0h</span>
+        <span id="hud-tide-stroke" class="badge stroke-badge">INRUSH</span>
+      </div>
+      <div class="progress-track">
+        <div id="hud-tide-bar" class="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Barometric & Altitude HUD (UIUX-03, UIUX-04) -->
+    <div class="altimeter-panel">
+      <div class="stat-group">
+        <span class="stat-label">ALTITUDE</span>
+        <span id="hud-altitude-text" class="stat-value">710m</span>
+        <span id="hud-altitude-zone" class="badge zone-badge">SHELF</span>
+      </div>
+      <div class="stat-group">
+        <span class="stat-label">WINDS</span>
+        <span id="hud-wind-text" class="stat-value">The Scour Updraft (15.0 m/s)</span>
+      </div>
+      <button id="btn-copy-coords" class="icon-btn" title="Copy Coordinates (UIUX-50)">⎘</button>
+    </div>
+  </header>
+
+  <!-- Player Vitals HUD (UIUX-02) -->
+  <aside id="vitals-panel">
+    <div class="vital-card">
+      <div class="vital-label">
+        <span>COSTAL VITRIFICATION</span>
+        <strong id="hud-vitrification-text">18.0%</strong>
+      </div>
+      <div class="vital-track">
+        <div id="hud-vitrification-bar" class="vital-fill vitrification-fill" style="width: 18%;"></div>
+      </div>
+      <small class="quiet-hint">Press <strong>[R]</strong> at cistern to Rinse Pleats</small>
+    </div>
+
+    <div class="vital-card">
+      <div class="vital-label">
+        <span>STEAM HYDRATION</span>
+        <span>12h max</span>
+      </div>
+      <div class="vital-track">
+        <div id="hud-hydration-bar" class="vital-fill hydration-fill" style="width: 70%;"></div>
+      </div>
+    </div>
+
+    <div class="vital-card">
+      <div class="vital-label">
+        <span>SPRINT STAMINA</span>
+      </div>
+      <div class="vital-track">
+        <div id="hud-stamina-bar" class="vital-fill stamina-fill" style="width: 100%;"></div>
+      </div>
+    </div>
+
+    <div class="vital-card">
+      <div class="vital-label">
+        <span>WATER SCRIP</span>
+        <strong id="hud-water-scrip">24.50 Lek</strong>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Bottom Navigation & Utility Dock -->
+  <footer id="bottom-bar">
+    <!-- Time Controls -->
+    <div class="time-controls">
+      <button id="btn-play-pause" class="time-btn">⏸ PAUSE</button>
+      <button class="time-btn active" data-speed="1">1x</button>
+      <button class="time-btn" data-speed="5">5x</button>
+      <button class="time-btn" data-speed="30">30x</button>
+      <button class="time-btn" data-speed="120">120x</button>
+    </div>
+
+    <!-- Crisis Event Trigger (GAME-41, UIUX-40) -->
+    <div class="crisis-controls">
+      <button id="btn-trigger-crisis" class="crisis-btn">TRIGGER GHRAT BRIDGE SHEAR</button>
+    </div>
+
+    <!-- Drawer Toggles -->
+    <div class="drawer-toggles">
+      <button class="dock-btn" data-drawer-trigger="ledger">WORLD STATE LEDGER</button>
+      <button class="dock-btn" data-drawer-trigger="bourse">SIPHON-BOURSE</button>
+      <button class="dock-btn" data-drawer-trigger="dossier">CITIZENS (20)</button>
+      <button class="dock-btn" data-drawer-trigger="manual">AXIOMS MANUAL</button>
+      <button class="dock-btn" data-drawer-trigger="settings">SETTINGS</button>
+    </div>
+  </footer>
+
+  <!-- Slide-out Drawers -->
+  <!-- 1. World State Ledger Drawer (UIUX-32, SIMU-50) -->
+  <div id="drawer-ledger" class="side-drawer" role="dialog" aria-label="World State Ledger">
+    <div class="drawer-header">
+      <h2>WORLD STATE LEDGER</h2>
+      <button class="close-btn" data-drawer-close>&times;</button>
+    </div>
+    <div id="ledger-content" class="drawer-body"></div>
+  </div>
+
+  <!-- 2. Siphon-Bourse Drawer (UIUX-21, SIMU-31) -->
+  <div id="drawer-bourse" class="side-drawer" role="dialog" aria-label="Siphon-Bourse">
+    <div class="drawer-header">
+      <h2>SIPHON-BOURSE COMMODITY MARKET</h2>
+      <button class="close-btn" data-drawer-close>&times;</button>
+    </div>
+    <div id="bourse-content" class="drawer-body"></div>
+  </div>
+
+  <!-- 3. Inhabitant Dossier Drawer (UIUX-31, SIMU-11) -->
+  <div id="drawer-dossier" class="side-drawer" role="dialog" aria-label="Citizen Dossier">
+    <div class="drawer-header">
+      <h2>INHABITANT REGISTRY (20 CITIZENS)</h2>
+      <button class="close-btn" data-drawer-close>&times;</button>
+    </div>
+    <div id="dossier-content" class="drawer-body"></div>
+  </div>
+
+  <!-- 4. Axioms Manual Drawer (UIUX-36) -->
+  <div id="drawer-manual" class="side-drawer" role="dialog" aria-label="Axioms Manual">
+    <div class="drawer-header">
+      <h2>THE FIVE FOUNDATIONAL AXIOMS</h2>
+      <button class="close-btn" data-drawer-close>&times;</button>
+    </div>
+    <div class="drawer-body manual-text">
+      <h3>1. Environment: The 32-Hour Subterranean Brine Tide</h3>
+      <p>The crust is broken by 1,400m rifts. Every 32 hours, chthonic brine expands, flooding the floor to 60m depth and pushing the sulfur-silica Plenum mist to 700m elevation. Ebb drains the brine into mantle sinks, pulling cold dry plateau air downward.</p>
+      
+      <h3>2. Biology: Costal Gill-Cleft & Silica Toxicity</h3>
+      <p>Humans possess six costal clefts with respiratory pleats. Fog breathing provides dietary silicates; failure to rinse clefts with pure water every 12 hours causes progressive joint petrification (Vitrification).</p>
+      
+      <h3>3. Resources: Vitreous Silic-Timber & Corrosive Mist</h3>
+      <p>Flora precipitates internal borosilicate glass fibers. Silic-timber is fireproof and strong, cut only with 4,200 Hz acoustic tuning forks or bile-lye acid. Surface iron oxidizes rapidly; resonant basalt is the primary masonry.</p>
+      
+      <h3>4. Movement: Gravity Funiculars & Hydro-Gradient</h3>
+      <p>Horizontal canyon floors are impassable boiling mud. All transport relies on catenary cables between cliff towers and hydro-counterweight funiculars driven by highland water ballast.</p>
+      
+      <h3>5. Social Organization: The Wash-Compact</h3>
+      <p>Highlanders have pure water and cable anchor heads. Lowlanders have algal food, fuel, and timber. Neither can conquer the other without dying. Society is governed by the Reciprocal Siphon Ledger (Lek water scrip).</p>
+    </div>
+  </div>
+
+  <!-- 5. Settings Drawer (UIUX-35, UIUX-38) -->
+  <div id="drawer-settings" class="side-drawer" role="dialog" aria-label="Settings">
+    <div class="drawer-header">
+      <h2>SIMULATION SETTINGS</h2>
+      <button class="close-btn" data-drawer-close>&times;</button>
+    </div>
+    <div class="drawer-body">
+      <h3>Audio Mixer (UIUX-38)</h3>
+      <div class="setting-row"><label>Master Volume</label><input type="range" min="0" max="1" step="0.05" value="0.8"></div>
+      <div class="setting-row"><label>Ambient Wind</label><input type="range" min="0" max="1" step="0.05" value="0.6"></div>
+      <div class="setting-row"><label>Basalt Chimes & SFX</label><input type="range" min="0" max="1" step="0.05" value="0.7"></div>
+      <div class="setting-row"><label>UI Feedback</label><input type="range" min="0" max="1" step="0.05" value="0.5"></div>
+      
+      <h3>Accessibility & Controls (UIUX-43, UIUX-44)</h3>
+      <div class="setting-row"><label><input type="checkbox" id="chk-reduced-motion"> Reduced Motion</label></div>
+      <div class="setting-row"><label><input type="checkbox" id="chk-high-contrast"> High Contrast Palette</label></div>
+    </div>
+  </div>
+
+  <!-- Photo Mode Overlay (UIUX-37) -->
+  <div id="photo-grid" class="photo-overlay" style="display: none;">
+    <div class="grid-line grid-v1"></div>
+    <div class="grid-line grid-v2"></div>
+    <div class="grid-line grid-h1"></div>
+    <div class="grid-line grid-h2"></div>
+    <div class="photo-hud">
+      <span>DIRECTOR PHOTO MODE ACTIVE — [P] TO EXIT</span>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container (UIUX-39) -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Main ES Module Entry Point -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
