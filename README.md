@@ -54,12 +54,24 @@ python3 tools/verify_improvements.py
 
 ---
 
-## Controls
+## Controls & 3D Camera Suite
 
+- **Orbit Drone Camera**: Press `1` or select **ORBIT** (Left-click drag to rotate 360°, Right-click drag to pan, Scroll wheel to zoom from 5m to 3,000m)
+- **3rd-Person Follow**: Press `2` or select **3RD PERSON** (Follows your animated 3D scavenger avatar)
+- **1st-Person Explorer**: Press `3` or select **1ST PERSON** (Immersive eye-level view with dynamic head-bob)
+- **Landmark Fly-Throughs**: Click **CISTERN**, **BOURSE**, **GHRAT SPAN**, **SLUICE WHARF**, or **GLASS FOREST** for cinematic camera flights
 - **Locomotion**: `W` `A` `S` `D` or Arrow Keys
 - **Sprint**: Hold `Shift` (consumes stamina)
 - **Crouch**: Press `C` (for low flumes)
 - **Rinse Pleats**: Press `R` at a cistern (spends 1 Lek to clear vitrification)
-- **Camera View**: Press `V` to toggle First-Person / Third-Person / Overview
 - **Time Scrubbing**: Click `1x`, `5x`, `30x`, or `120x` to speed up the 32-hour planetary tide
 - **The Disruption**: Click **TRIGGER GHRAT BRIDGE SHEAR** (or press `X`) to trigger the tension shackle failure and inspect the causal cascade in the **WORLD STATE LEDGER** drawer
+- **3D Raycasting Inspection**: Hover over any landmark or citizen in 3D to see their holographic tactical HUD; click to open their dossier, market, or audit!
+
+---
+
+## Live Deployment & Repository
+
+- **GitHub Pages (Live Demo)**: [https://westkitty.github.io/chasm-of-the-plenum/](https://westkitty.github.io/chasm-of-the-plenum/)
+- **GitHub Repository**: [https://github.com/westkitty/chasm-of-the-plenum](https://github.com/westkitty/chasm-of-the-plenum)
+

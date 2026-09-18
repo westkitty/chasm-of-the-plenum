@@ -86,6 +86,9 @@ export class InputBus {
       case 'KeyO': return 'toggleSettings';
       case 'KeyP': return 'photoMode';
       case 'KeyX': return 'triggerCrisis';
+      case 'Digit1': return 'camOrbit';
+      case 'Digit2': return 'camThird';
+      case 'Digit3': return 'camFirst';
       default: return null;
     }
   }

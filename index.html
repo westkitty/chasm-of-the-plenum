@@ -87,6 +87,28 @@
     </div>
   </aside>
 
+  <!-- 3D Camera Controls & Landmark Navigator -->
+  <div id="camera-toolbar" class="floating-toolbar">
+    <div class="toolbar-section">
+      <span class="toolbar-label">CAMERA RIG</span>
+      <div class="btn-group">
+        <button class="cam-btn active" data-cam-mode="orbit" title="Free 360° Orbit Drone">ORBIT [1]</button>
+        <button class="cam-btn" data-cam-mode="third_person" title="3rd Person Follow">3RD PERSON [2]</button>
+        <button class="cam-btn" data-cam-mode="first_person" title="1st Person Immersion">1ST PERSON [3]</button>
+      </div>
+    </div>
+    <div class="toolbar-section">
+      <span class="toolbar-label">FLY TO LANDMARK</span>
+      <div class="btn-group">
+        <button class="fly-btn" data-fly-to="cistern">CISTERN (1400m)</button>
+        <button class="fly-btn" data-fly-to="bourse">BOURSE (710m)</button>
+        <button class="fly-btn" data-fly-to="bridge">GHRAT SPAN</button>
+        <button class="fly-btn" data-fly-to="wharf">SLUICE WHARF (50m)</button>
+        <button class="fly-btn" data-fly-to="forest">GLASS FOREST</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Bottom Navigation & Utility Dock -->
   <footer id="bottom-bar">
     <!-- Time Controls -->

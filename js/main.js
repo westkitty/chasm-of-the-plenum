@@ -1,6 +1,7 @@
 /**
  * CHASM OF THE PLENUM - MAIN APPLICATION ENTRY POINT
- * Coordinates all 200 system improvements across UI/UX, Gameplay, Stability, and Simulation.
+ * Coordinates all 200 system improvements across UI/UX, Gameplay, Stability, Simulation,
+ * and the complete Three.js 3D Virtual Experience.
  */
 import { INITIAL_STATE, AXIOMS } from './config.js';
 import { SimulationLoop } from './engine/loop.js';
@@ -19,6 +20,9 @@ import { WorldScene } from './world/scene.js';
 import { CanyonWorld } from './world/canyon.js';
 import { CablewaySystem } from './world/cableways.js';
 import { BrineOcean } from './world/water.js';
+import { CharacterSystem } from './world/characters.js';
+import { ParticleAtmosphere } from './world/particles.js';
+import { InteractionSystem } from './world/interact.js';
 
 import { HUDManager } from './ui/hud.js';
 import { DrawerManager } from './ui/drawers.js';
@@ -47,12 +51,43 @@ class ChasmSimulationApp {
     );
     this.storage.init();
 
-    // 3D Scene
+    // 3D Scene & World
     const viewport = document.getElementById('viewport');
     this.worldScene = new WorldScene(viewport);
     this.canyon = new CanyonWorld(this.worldScene.scene);
     this.cableways = new CablewaySystem(this.worldScene.scene, this.state);
     this.brineOcean = new BrineOcean(this.worldScene.scene, this.state);
+    this.particles = new ParticleAtmosphere(this.worldScene.scene, this.state);
+    this.characters = new CharacterSystem(this.worldScene.scene, this.state, this.npcs);
+
+    // 3D Raycasting & Holographic Interaction
+    this.interact = new InteractionSystem(
+      this.worldScene.scene,
+      this.worldScene.camera,
+      viewport,
+      {
+        onSelectNPC: (npcId) => {
+          this.drawers.openDrawer('dossier');
+          this.toasts.add(`Inspecting citizen dossier: ${npcId.toUpperCase()}`, 'info');
+        },
+        onSelectBourse: () => {
+          this.drawers.openDrawer('bourse');
+          this.toasts.add('Accessing Siphon-Bourse Commodity Exchange', 'info');
+        },
+        onSelectCistern: () => {
+          const ok = this.biology.performRinse();
+          if (ok) {
+            this.toasts.add('Pleats rinsed at Great Cistern Rim! Vitrification reduced.', 'success');
+          } else {
+            this.toasts.add('Insufficient water scrip (1.0 Lek required).', 'error');
+          }
+        },
+        onSelectBridge: () => {
+          this.drawers.openDrawer('ledger');
+          this.toasts.add('Auditing Hanging Span of Ghrat status in Ledger', 'info');
+        }
+      }
+    );
 
     // UI
     this.hud = new HUDManager(this.state, this.input);
@@ -60,8 +95,11 @@ class ChasmSimulationApp {
     this.photo = new PhotoMode(this.worldScene.renderer, this.worldScene.camera);
 
     this.headBobTimer = 0;
+    this.isPlayerMoving = false;
+
     this.setupInteractions();
     this.setupTimeControls();
+    this.setupCameraNavigationUI();
 
     // Loop
     this.loop = new SimulationLoop(
@@ -83,17 +121,18 @@ class ChasmSimulationApp {
 
     // Camera view toggle (Key V)
     this.input.on('toggleCam', () => {
-      if (this.worldScene.viewMode === 'third_person') {
-        this.worldScene.viewMode = 'first_person';
-        this.toasts.add('Camera: First-Person View', 'info');
-      } else if (this.worldScene.viewMode === 'first_person') {
-        this.worldScene.viewMode = 'overview';
-        this.toasts.add('Camera: Tactical Overview View', 'info');
+      if (this.worldScene.viewMode === 'orbit') {
+        this.setCameraMode('third_person');
+      } else if (this.worldScene.viewMode === 'third_person') {
+        this.setCameraMode('first_person');
       } else {
-        this.worldScene.viewMode = 'third_person';
-        this.toasts.add('Camera: Third-Person View', 'info');
+        this.setCameraMode('orbit');
       }
     });
+
+    this.input.on('camOrbit', () => this.setCameraMode('orbit'));
+    this.input.on('camThird', () => this.setCameraMode('third_person'));
+    this.input.on('camFirst', () => this.setCameraMode('first_person'));
 
     // Crisis trigger (Key X or Button)
     this.input.on('triggerCrisis', () => {
@@ -151,6 +190,58 @@ class ChasmSimulationApp {
     });
   }
 
+  setupCameraNavigationUI() {
+    // Mode buttons
+    document.querySelectorAll('[data-cam-mode]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-cam-mode');
+        this.setCameraMode(mode);
+      });
+    });
+
+    // Fly-to landmark buttons
+    document.querySelectorAll('[data-fly-to]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const landmark = btn.getAttribute('data-fly-to');
+        this.flyToLandmark(landmark);
+      });
+    });
+  }
+
+  setCameraMode(mode) {
+    this.worldScene.viewMode = mode;
+    document.querySelectorAll('[data-cam-mode]').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-cam-mode') === mode);
+    });
+
+    if (mode === 'orbit') {
+      this.toasts.add('Camera: Free Orbit Drone (Left-click drag to rotate, Right-click pan, Scroll zoom)', 'info', 4000);
+    } else if (mode === 'third_person') {
+      this.toasts.add('Camera: Third-Person Scavenger Chase', 'info');
+    } else if (mode === 'first_person') {
+      this.toasts.add('Camera: First-Person Explorer View', 'info');
+    }
+  }
+
+  flyToLandmark(landmark) {
+    if (landmark === 'cistern') {
+      this.worldScene.flyTo(new THREE.Vector3(-150, 1470, -40), new THREE.Vector3(-150, 1415, -120), 2.0);
+      this.toasts.add('Flying to High Scarp: The Great Cistern (1,400m)', 'info');
+    } else if (landmark === 'bourse') {
+      this.worldScene.flyTo(new THREE.Vector3(-90, 750, 140), new THREE.Vector3(-145, 725, 80), 2.0);
+      this.toasts.add('Flying to Median Shelf: Siphon-Bourse Arcade (710m)', 'info');
+    } else if (landmark === 'bridge') {
+      this.worldScene.flyTo(new THREE.Vector3(-90, 740, -70), new THREE.Vector3(-135, 712, -70), 2.0);
+      this.toasts.add('Flying to The Hanging Span of Ghrat (712m)', 'info');
+    } else if (landmark === 'wharf') {
+      this.worldScene.flyTo(new THREE.Vector3(0, 110, 0), new THREE.Vector3(-80, 54, 0), 2.0);
+      this.toasts.add('Flying to Low Gut: Sluice-Wharf Nine (50m floor)', 'info');
+    } else if (landmark === 'forest') {
+      this.worldScene.flyTo(new THREE.Vector3(120, 100, -120), new THREE.Vector3(80, 70, -160), 2.0);
+      this.toasts.add('Flying to Vitreous Reach: Silic-Cane Glass Forest', 'info');
+    }
+  }
+
   setupTimeControls() {
     document.querySelectorAll('[data-speed]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -187,7 +278,7 @@ class ChasmSimulationApp {
     // 5. Cableways & Funicular motion
     this.cableways.update(dt);
 
-    // 6. Brine Ocean height
+    // 6. Brine Ocean height & waves
     this.brineOcean.update(dt);
 
     // 7. Player locomotion
@@ -224,6 +315,8 @@ class ChasmSimulationApp {
     if (act.left) { dx -= 1; isMoving = true; }
     if (act.right) { dx += 1; isMoving = true; }
 
+    this.isPlayerMoving = isMoving;
+
     if (isMoving) {
       const len = Math.hypot(dx, dz);
       p.x += (dx / len) * speed * dt;
@@ -245,28 +338,43 @@ class ChasmSimulationApp {
 
     // Altitude stairs navigation
     if (p.x < -200 && p.z > -100 && p.z < 100) {
-      // Near funicular cliff shelf
       p.y = 710;
     }
   }
 
   renderUpdate(alpha, rawDelta) {
+    const dt = rawDelta || 0.016;
     const p = this.state.player;
     const playerVec = new THREE.Vector3(p.x, p.y, p.z);
     const headBob = Math.sin(this.headBobTimer) * 0.12;
 
-    this.worldScene.updateCamera(playerVec, false, headBob);
-    this.worldScene.setFogDensity(this.state.weather.fogDensity);
+    // 1. Update 3D World Animation (Canyon, Windmills, Waterfalls)
+    this.canyon.update(dt);
+
+    // 2. Update Volumetric Particles (Mist, Spores, Geysers, Sparks)
+    this.particles.update(dt, this.state.timeHours);
+
+    // 3. Update 3D Characters (Player Avatar, 20 Citizens)
+    this.characters.update(dt, this.isPlayerMoving);
+
+    // 4. Update 3D Camera Rig & Celestial Atmosphere
+    this.worldScene.updateCamera(playerVec, this.isPlayerMoving, headBob, dt);
+    this.worldScene.updateAtmosphere(this.state.timeHours, this.state.weather);
+
+    // 5. Update 3D Interactive Raycasting
+    this.interact.update();
+
+    // 6. Render WebGL Scene
     this.worldScene.renderer.render(this.worldScene.scene, this.worldScene.camera);
 
-    // Update HUD
+    // 7. Update HUD
     const stroke = this.tide.getCurrentStroke();
     this.hud.update(stroke);
   }
 
   start() {
     this.loop.start();
-    this.toasts.add('Welcome to the Chasm of the Plenum. 32-hour simulation active.', 'info', 5000);
+    this.toasts.add('Chasm of the Plenum 3D Experience Active. Click & drag to orbit, or select a camera view.', 'info', 6000);
   }
 }
 
